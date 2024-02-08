@@ -45,6 +45,11 @@ game_state = {
     "inventory" : []
 }
 
+monster = {
+    "name" : "scele_boy", 
+    "heath" : 100
+    }
+
 prompts = [
     {
         "action" : "get_name",
@@ -65,7 +70,7 @@ prompts = [
 
 code = 0
 while True:    
-    user_input = input()
+    user_input = input("press any key to continue")
     if user_input == '':
         prompt = prompts.pop(0)
 
