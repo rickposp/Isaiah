@@ -1,18 +1,13 @@
-# Get the players name
-# Let them choose their character
 # Make choices
 # multiple choice
 # free form
 # set a time limit for decisions
-# player could have invantory
 # player could have sords 
 # player could have food
 # player could have a break dance mode
 # final boss 
 # music
 # npc
-# hit the griddy
-# bagel :D
 
 def print_inventory():
     inventory = game_state["inventory"]
