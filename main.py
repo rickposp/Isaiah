@@ -30,58 +30,82 @@
 
 class CombatController:
 
-    def __init__(self, player, enemy):
-        self.player = player
-        self.enemy = enemy
+    def __init__(self):
+        self.player = Player(self)
+        self.enemy = Enemy(self)
 
     def enter_combat_loop(self):
-        while(self.enemy.alive()):
-            user_input = input("A: attack  B: block  C: ranged attack")
-            player_move = self.process_user_input_for_move(user_input)
-            player_move.do()
-            enemy_move = self.get_enemy_move()
-            enemy_move.do()
-            pass
-
-    def process_user_input_for_move(self, user_input):
-        clean_user_input = user_input.lower()
-        match(clean_user_input):
-            case "a":
-                return CombatMove("attack", 10, 0)
-            case "b":
-                return CombatMove("block", 0, 9)
-            case "c":
-                return CombatMove("ranged attack", 3, 0)
-            case _:
-                return None
-            
-    def get_enemy_move(self):
-        return CombatMove("attack", 9, 0)
+        while(self.enemy.alive() and self.player.alive()):
+            self.player.take_turn()
+            self.enemy.take_turn()
 
 
-class Enemy:
-    def __init__(self, health, type, name):
+class Character:
+
+    def __init__(self, combat_controller, health, name):
+        self.combat_controller = combat_controller
         self.health = health
-        self.type = type
         self.name = name
+        self.block = 0
+
+    def take_turn(self):
+        move = self.get_move()
+        move.do
 
     def alive(self):
         return self.health > 0
 
 
+class Enemy(Character):
+    def __init__(self, combat_controller, health, name):
+        self.super(combat_controller, health, name)
+    
+    def get_move(self):
+        # cool AI stuff will go here
+        return CombatMove("attack", 1, 0)
+
+
+class Player(Character):
+
+    def __init__(self, combat_controller):
+        self.super(combat_controller, 100, game_state["name"])
+        self.health = 100
+        self.inventory = []
+
+    def get_move(self, user_input):
+        self.super()
+        user_input = input("A: attack  B: block  C: ranged attack")
+        clean_user_input = user_input.lower()
+        match(clean_user_input):
+            case "a":
+                return Attack("attack", self.combat_controller.enemy, 10)
+            case "b":
+                return CombatMove("block", self, 9)
+            case _:
+                return None
+
 class CombatMove:
 
-    def __init__(self, name, damage, block):
-        self.name = name
+    def __init__(self, target):
+        self.target = target
+
+class Attack(CombatMove):
+
+    def __init__(self, target, damage):
+        self.super(target)
         self.damage = damage
-        self.block = block
 
+    def do(self):
+        self.target.health = self.target.health - self.damage
 
-class Player:
+class Block(CombatMove):
 
-    def __init__(self):
-        self.health = 100
-        self.inventory = {}
+    def __init__(self, block):
+        self.super(target)
+        self.block = self.block
+    
+    def do(self):
+        self.target.block = self.target.block + self.block
 
 
 def print_inventory():
