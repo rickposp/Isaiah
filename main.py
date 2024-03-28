@@ -28,16 +28,28 @@
 # AI???
 # God cheese
 
+import random
+
 class CombatController:
 
     def __init__(self):
         self.player = Player(self)
-        self.enemy = Enemy(self)
+        self.enemy = Enemy(self, 50, "Bad Billybob")
 
     def enter_combat_loop(self):
+        print("You encounter an enemy!")
         while(self.enemy.alive() and self.player.alive()):
+            print("Your health: {}  Enemy health: {}".format(self.player.health, self.enemy.health))
             self.player.take_turn()
             self.enemy.take_turn()
+
+            # combat is over, reset
+            self.player.block = 0
+            self.enemy.block = 0
+        if self.enemy.alive():
+            print("you lose")
+        else:
+            print("you win!")
 
 
 class Character:
@@ -50,7 +62,7 @@ class Character:
 
     def take_turn(self):
         move = self.get_move()
-        move.do
+        move.do()
 
     def alive(self):
         return self.health > 0
@@ -58,54 +70,57 @@ class Character:
 
 class Enemy(Character):
     def __init__(self, combat_controller, health, name):
-        self.super(combat_controller, health, name)
+        super().__init__(combat_controller, health, name)
     
     def get_move(self):
         # cool AI stuff will go here
-        return CombatMove("attack", 1, 0)
+        attack = random.randrange(0, 50)
+        return Attack(self, self.combat_controller.player, attack)
 
 
 class Player(Character):
 
     def __init__(self, combat_controller):
-        self.super(combat_controller, 100, game_state["name"])
-        self.health = 100
+        super().__init__(combat_controller, 100, game_state["name"])
         self.inventory = []
 
-    def get_move(self, user_input):
-        self.super()
-        user_input = input("A: attack  B: block  C: ranged attack")
-        clean_user_input = user_input.lower()
-        match(clean_user_input):
-            case "a":
-                return Attack("attack", self.combat_controller.enemy, 10)
-            case "b":
-                return CombatMove("block", self, 9)
-            case _:
-                return None
+    def get_move(self):
+        running = True
+        while(running):
+            user_input = input("A: attack  B: block  C: ranged attack\n")
+            clean_user_input = user_input.strip().lower()
+            match(clean_user_input):
+                case "a":
+                    return Attack(self, self.combat_controller.enemy, 10)
+                case "b":
+                    return Block(self, self, 20)
 
 class CombatMove:
 
-    def __init__(self, target):
+    def __init__(self, source, target):
+        self.source = source
         self.target = target
 
 class Attack(CombatMove):
 
-    def __init__(self, target, damage):
-        self.super(target)
+    def __init__(self, source, target, damage):
+        super().__init__(source, target)
         self.damage = damage
 
     def do(self):
-        self.target.health = self.target.health - self.damage
+        effective_damage = max(self.damage - self.target.block, 0)
+        self.target.health = max(self.target.health - effective_damage, 0)
+        print("{} attacked {} and did {} damage!".format(self.source.name, self.target.name, effective_damage))
 
 class Block(CombatMove):
 
-    def __init__(self, block):
-        self.super(target)
-        self.block = self.block
+    def __init__(self, source, target, block):
+        super().__init__(source, target)
+        self.block = block
     
     def do(self):
-        self.target.block = self.target.block + self.block
+        self.target.block = self.block
+        print("{} held up their shield giving them {} block!".format(self.target.name, self.block))
 
 
 def print_inventory():
@@ -133,6 +148,9 @@ def handle_get_name(prompt):
     user_input = input()
     game_state["name"] = user_input
     return 0
+
+def handle_combat(prompt):
+    CombatController().enter_combat_loop()
     
 game_state = {
     "name" : "",
@@ -150,6 +168,9 @@ prompts = [
         "text" : "Hello, what is your name?\n"
     },
     {
+        "action": "combat"
+    },
+    {
         "action" : "start"
     },
     {
@@ -164,7 +185,7 @@ prompts = [
 
 code = 0
 while True:    
-    user_input = input("press any key to continue")
+    user_input = input("press enter to continue")
     if user_input == '':
         prompt = prompts.pop(0)
 
@@ -178,6 +199,8 @@ while True:
             code = handle_griddy(prompt)
         if action == "you_have_item":
             code = handle_grab_item(prompt)
+        if action == "combat":
+            code = handle_combat(prompt)
     elif user_input == "i":
         print_inventory()
     
