@@ -40,6 +40,10 @@ class CombatController:
         print("You encounter an enemy!")
         while(self.enemy.alive() and self.player.alive()):
             print("Your health: {}  Enemy health: {}".format(self.player.health, self.enemy.health))
+
+            self.enemy.signal_intent()
+            self.player.signal_intent()
+
             self.player.take_turn()
             self.enemy.take_turn()
 
@@ -59,24 +63,38 @@ class Character:
         self.health = health
         self.name = name
         self.block = 0
+        self.conceal = False
 
     def take_turn(self):
-        move = self.get_move()
-        move.do()
+        self.intent.execute()
 
     def alive(self):
         return self.health > 0
+    
+    def signal_intent(self):
+        self.intent = self.get_intent()
+        if not self.conceal or isinstance(self.intent, Conceal):
+            self.intent.signal()
+        if self.conceal:
+            self.conceal = False
 
 
 class Enemy(Character):
     def __init__(self, combat_controller, health, name):
         super().__init__(combat_controller, health, name)
     
-    def get_move(self):
+    def get_intent(self):
         # cool AI stuff will go here
-        attack = random.randrange(0, 50)
-        return Attack(self, self.combat_controller.player, attack)
-
+        random_index = random.randrange(0, 3)
+        match(random_index):
+            case 0:
+                attack = random.randrange(0, 50)
+                return Attack(self, self.combat_controller.player, attack) 
+            case 1:
+                block = random.randrange(0, 50)
+                return Block(self, self, block)
+            case 2:
+                return Conceal(self, self)
 
 class Player(Character):
 
@@ -84,16 +102,18 @@ class Player(Character):
         super().__init__(combat_controller, 100, game_state["name"])
         self.inventory = []
 
-    def get_move(self):
+    def get_intent(self):
         running = True
         while(running):
-            user_input = input("A: attack  B: block  C: ranged attack\n")
+            user_input = input("A: attack  B: block  C: conceal\n")
             clean_user_input = user_input.strip().lower()
             match(clean_user_input):
                 case "a":
                     return Attack(self, self.combat_controller.enemy, 10)
                 case "b":
                     return Block(self, self, 20)
+                case "c":
+                    return Conceal(self, self)
 
 class CombatMove:
 
@@ -107,10 +127,13 @@ class Attack(CombatMove):
         super().__init__(source, target)
         self.damage = damage
 
-    def do(self):
+    def execute(self):
         effective_damage = max(self.damage - self.target.block, 0)
         self.target.health = max(self.target.health - effective_damage, 0)
         print("{} attacked {} and did {} damage!".format(self.source.name, self.target.name, effective_damage))
+
+    def signal(self):
+        print("{} raised their sword".format(self.source.name))
 
 class Block(CombatMove):
 
@@ -118,9 +141,24 @@ class Block(CombatMove):
         super().__init__(source, target)
         self.block = block
     
-    def do(self):
+    def execute(self):
+        pass
+
+    def signal(self):
         self.target.block = self.block
         print("{} held up their shield giving them {} block!".format(self.target.name, self.block))
+
+class Conceal(CombatMove):
+
+    def __init__(self, source, target):
+        super().__init__(source, target)
+        source.conceal = True
+
+    def execute(self):
+        pass
+
+    def signal(self):
+        print("{} feinted with their right hand".format(self.source.name))
 
 
 def print_inventory():
@@ -159,7 +197,7 @@ game_state = {
 
 monster = {
     "name" : "scele_boy", 
-    "heath" : 100
+    "heath" : 50
     }
 
 prompts = [
