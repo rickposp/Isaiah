@@ -71,6 +71,9 @@ class Character:
     def alive(self):
         return self.health > 0
     
+    def get_intent(self):
+        raise Exception("not implemented")
+    
     def signal_intent(self):
         self.intent = self.get_intent()
         if not self.conceal or isinstance(self.intent, Conceal):
