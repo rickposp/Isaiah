@@ -9,26 +9,20 @@
 # music
 # npc
 
-# combat gameplay
-# turn based
-# A little randomness (critical hits)
-# win by killing monster (health is zero)
-# Different moves available: attack, block, ranged attack, etc
-# inventory could take up a turn
-# God cheese
-
 
 # Combat
 # *companions
+# A little randomness (critical hits)
+# inventory could take up a turn
 # *three atacks per turn
 # potions
 #  * player inventory
 #  * option during combat
+#  * God cheese
 # properties of your character factor in
-# AI???
-# God cheese
 
 import random
+import numpy as np
 
 class CombatController:
 
@@ -91,10 +85,14 @@ class Enemy(Character):
         random_index = random.randrange(0, 3)
         match(random_index):
             case 0:
-                attack = random.randrange(0, 50)
+                mu = 16                                 # average attack
+                sigma = 8                               # 68% of attacks will be this distanced from the average
+                scalar = np.random.normal(mu, sigma, 1) # get a random number from the distribution
+                unpacked = scalar[0]                    # unpack the result from the array
+                attack = round(unpacked)                # round the float to an integer
                 return Attack(self, self.combat_controller.player, attack) 
             case 1:
-                block = random.randrange(0, 50)
+                block = round(np.random.normal(10, 4, 1)[0])
                 return Block(self, self, block)
             case 2:
                 return Conceal(self, self)
@@ -128,12 +126,27 @@ class Attack(CombatMove):
 
     def __init__(self, source, target, damage):
         super().__init__(source, target)
-        self.damage = damage
+        self.base_damage = damage
 
     def execute(self):
-        effective_damage = max(self.damage - self.target.block, 0)
+        crit = random.randrange(0, 100)
+        if crit == 0:
+            multiple = self.base_damage
+            self.base_damage = self.base_damage * self.base_damage
+            print("{} got a rare critical hit for {} times the damage!".format(self.source.name, multiple))
+        elif crit < 10:
+            self.base_damage = self.base_damage * 2
+            print("{} got a critical hit for double damage!".format(self.source.name))
+        effective_damage = max(self.base_damage - self.target.block, 0)
         self.target.health = max(self.target.health - effective_damage, 0)
-        print("{} attacked {} and did {} damage!".format(self.source.name, self.target.name, effective_damage))
+        if(self.base_damage < 8):
+            print("{} did a wimpy attack and did {} damage".format(self.source.name, effective_damage))
+        elif(self.base_damage < 16):
+            print("{} did an ok attack and did {} damage".format(self.source.name, effective_damage))
+        elif(self.base_damage < 32):
+            print("{} did a strong attack and did {} damage!".format(self.source.name, effective_damage))
+        else:
+            print("{} did a very strong attack and did {} damage!!".format(self.source.name, effective_damage))
 
     def signal(self):
         print("{} raised their sword".format(self.source.name))
@@ -145,7 +158,14 @@ class Block(CombatMove):
         self.block = block
     
     def execute(self):
-        pass
+        if(self.block < 8):
+            print("{} did a wimpy block for {} protection".format(self.source.name, self.block))
+        elif(self.block < 16):
+            print("{} did an ok block for {} protection".format(self.source.name, self.block))
+        elif(self.block < 32):
+            print("{} did a strong block for {} protection!".format(self.source.name, self.block))
+        else:
+            print("{} did a very strong block for {} protection!!".format(self.source.name, self.block))
 
     def signal(self):
         self.target.block = self.block
