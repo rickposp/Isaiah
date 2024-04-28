@@ -118,8 +118,8 @@ class Player(Character):
 
 class CombatMove:
 
-    def __init__(self, source, target):
-        self.source = source
+    def __init__(self, player, target = None):
+        self.player = player
         self.target = target
 
 class Attack(CombatMove):
@@ -133,23 +133,23 @@ class Attack(CombatMove):
         if crit == 0:
             multiple = self.base_damage
             self.base_damage = self.base_damage * self.base_damage
-            print("{} got a rare critical hit for {} times the damage!".format(self.source.name, multiple))
+            print("{} got a rare critical hit for {} times the damage!".format(self.player.name, multiple))
         elif crit < 10:
             self.base_damage = self.base_damage * 2
-            print("{} got a critical hit for double damage!".format(self.source.name))
+            print("{} got a critical hit for double damage!".format(self.player.name))
         effective_damage = max(self.base_damage - self.target.block, 0)
         self.target.health = max(self.target.health - effective_damage, 0)
         if(self.base_damage < 8):
-            print("{} did a wimpy attack and did {} damage".format(self.source.name, effective_damage))
+            print("{} did a wimpy attack and did {} damage".format(self.player.name, effective_damage))
         elif(self.base_damage < 16):
-            print("{} did an ok attack and did {} damage".format(self.source.name, effective_damage))
+            print("{} did an ok attack and did {} damage".format(self.player.name, effective_damage))
         elif(self.base_damage < 32):
-            print("{} did a strong attack and did {} damage!".format(self.source.name, effective_damage))
+            print("{} did a strong attack and did {} damage!".format(self.player.name, effective_damage))
         else:
-            print("{} did a very strong attack and did {} damage!!".format(self.source.name, effective_damage))
+            print("{} did a very strong attack and did {} damage!!".format(self.player.name, effective_damage))
 
     def signal(self):
-        print("{} raised their sword".format(self.source.name))
+        print("{} raised their sword".format(self.player.name))
 
 class Block(CombatMove):
 
@@ -159,13 +159,13 @@ class Block(CombatMove):
     
     def execute(self):
         if(self.block < 8):
-            print("{} did a wimpy block for {} protection".format(self.source.name, self.block))
+            print("{} did a wimpy block for {} protection".format(self.player.name, self.block))
         elif(self.block < 16):
-            print("{} did an ok block for {} protection".format(self.source.name, self.block))
+            print("{} did an ok block for {} protection".format(self.player.name, self.block))
         elif(self.block < 32):
-            print("{} did a strong block for {} protection!".format(self.source.name, self.block))
+            print("{} did a strong block for {} protection!".format(self.player.name, self.block))
         else:
-            print("{} did a very strong block for {} protection!!".format(self.source.name, self.block))
+            print("{} did a very strong block for {} protection!!".format(self.player.name, self.block))
 
     def signal(self):
         self.target.block = self.block
@@ -181,7 +181,7 @@ class Conceal(CombatMove):
         pass
 
     def signal(self):
-        print("{} feinted with their right hand".format(self.source.name))
+        print("{} feinted with their right hand".format(self.player.name))
 
 
 def print_inventory():
