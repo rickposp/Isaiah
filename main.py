@@ -33,7 +33,7 @@ class CombatController:
     def enter_combat_loop(self):
         print("You encounter an enemy!")
         while(self.enemy.alive() and self.player.alive()):
-            print("Your health: {}  Enemy health: {}".format(self.player.health, self.enemy.health))
+            print("{}'s health: {}  {}'s health: {}".format(self.player.name, self.player.health, self.enemy.name, self.enemy.health))
 
             self.enemy.signal_intent()
             self.player.signal_intent()
@@ -121,10 +121,10 @@ class Player(Character):
                     return Conceal(self)
                 
     def base_damage(self):
-        return 20
+        return 16
     
     def base_block(self):
-        return 20
+        return 10
 
 class CombatMove:
 
