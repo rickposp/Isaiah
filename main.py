@@ -28,7 +28,7 @@ class CombatController:
 
     def __init__(self):
         self.player = Player(self)
-        self.enemy = Enemy(self, 50, "Bad Billybob")
+        self.enemy = NPC(self, 50, "Bad Billybob")
 
     def enter_combat_loop(self):
         print("You encounter an enemy!")
@@ -76,7 +76,7 @@ class Character:
             self.concealed = False
 
 
-class Enemy(Character):
+class NPC(Character):
     def __init__(self, combat_controller, health, name):
         super().__init__(combat_controller, health, name)
     
