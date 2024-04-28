@@ -85,17 +85,21 @@ class Enemy(Character):
         random_index = random.randrange(0, 3)
         match(random_index):
             case 0:
-                mu = 16                                 # average attack
-                sigma = 8                               # 68% of attacks will be this distanced from the average
-                scalar = np.random.normal(mu, sigma, 1) # get a random number from the distribution
-                unpacked = scalar[0]                    # unpack the result from the array
-                attack = round(unpacked)                # round the float to an integer
-                return Attack(self, self.combat_controller.player, attack) 
+                return Attack(self, self.combat_controller.player) 
             case 1:
-                block = round(np.random.normal(10, 4, 1)[0])
-                return Block(self, block)
+                return Block(self)
             case 2:
                 return Conceal(self)
+            
+    def base_damage(self):
+        mu = 16                                 # average attack
+        sigma = 8                               # 68% of attacks will be this distanced from the average
+        scalar = np.random.normal(mu, sigma, 1) # get a random number from the distribution
+        unpacked = scalar[0]                    # unpack the result from the array
+        return round(unpacked)                  # round the float to an integer
+    
+    def base_block(self):
+        return round(np.random.normal(10, 4, 1)[0])
 
 class Player(Character):
 
@@ -110,11 +114,17 @@ class Player(Character):
             clean_user_input = user_input.strip().lower()
             match(clean_user_input):
                 case "a":
-                    return Attack(self, self.combat_controller.enemy, 10)
+                    return Attack(self, self.combat_controller.enemy)
                 case "b":
-                    return Block(self, 20)
+                    return Block(self)
                 case "c":
                     return Conceal(self)
+                
+    def base_damage(self):
+        return 20
+    
+    def base_block(self):
+        return 20
 
 class CombatMove:
 
@@ -124,9 +134,9 @@ class CombatMove:
 
 class Attack(CombatMove):
 
-    def __init__(self, player, target, damage):
+    def __init__(self, player, target):
         super().__init__(player, target)
-        self.base_damage = damage
+        self.base_damage = player.base_damage()
 
     def execute(self):
         crit = random.randrange(0, 100)
@@ -153,9 +163,9 @@ class Attack(CombatMove):
 
 class Block(CombatMove):
 
-    def __init__(self, player, block):
+    def __init__(self, player):
         super().__init__(player)
-        self.block = block
+        self.block = player.base_block()
     
     def execute(self):
         if(self.block < 8):
