@@ -93,9 +93,9 @@ class Enemy(Character):
                 return Attack(self, self.combat_controller.player, attack) 
             case 1:
                 block = round(np.random.normal(10, 4, 1)[0])
-                return Block(self, self, block)
+                return Block(self, block)
             case 2:
-                return Conceal(self, self)
+                return Conceal(self)
 
 class Player(Character):
 
@@ -112,9 +112,9 @@ class Player(Character):
                 case "a":
                     return Attack(self, self.combat_controller.enemy, 10)
                 case "b":
-                    return Block(self, self, 20)
+                    return Block(self, 20)
                 case "c":
-                    return Conceal(self, self)
+                    return Conceal(self)
 
 class CombatMove:
 
@@ -153,8 +153,8 @@ class Attack(CombatMove):
 
 class Block(CombatMove):
 
-    def __init__(self, player, target, block):
-        super().__init__(player, target)
+    def __init__(self, player, block):
+        super().__init__(player)
         self.block = block
     
     def execute(self):
@@ -168,13 +168,13 @@ class Block(CombatMove):
             print("{} did a very strong block for {} protection!!".format(self.player.name, self.block))
 
     def signal(self):
-        self.target.block = self.block
-        print("{} held up their shield giving them {} block!".format(self.target.name, self.block))
+        self.player.block = self.block
+        print("{} held up their shield giving them {} block!".format(self.player.name, self.block))
 
 class Conceal(CombatMove):
 
-    def __init__(self, player, target):
-        super().__init__(player, target)
+    def __init__(self, player):
+        super().__init__(player)
         player.concealed = True
 
     def execute(self):
