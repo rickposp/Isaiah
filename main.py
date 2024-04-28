@@ -133,13 +133,15 @@ class Attack(CombatMove):
     def __init__(self, player, target):
         super().__init__(player, target)
 
-    def damage(self):
-        mu = self.player.base_damage()                                 # average attack
-        sigma = 2                               # 68% of attacks will be this distanced from the average
+    def randomize(self, damage):
+        mu = damage                             # average attack
+        sigma = 2                               # 68% of attacks will be this distance from the average
         scalar = np.random.normal(mu, sigma, 1) # get a random number from the distribution
         unpacked = scalar[0]                    # unpack the result from the array
-        damage = round(unpacked)                  # round the float to an integer
-        
+        return round(unpacked)                  # round the float to an integer
+
+    def damage(self):
+        damage = self.randomize(self.player.base_damage())
         crit = random.randrange(0, 100)
         if crit == 0:
             multiple = damage
