@@ -57,7 +57,7 @@ class Character:
         self.health = health
         self.name = name
         self.block = 0
-        self.conceal = False
+        self.concealed = False
 
     def take_turn(self):
         self.intent.execute()
@@ -70,10 +70,10 @@ class Character:
     
     def signal_intent(self):
         self.intent = self.get_intent()
-        if not self.conceal or isinstance(self.intent, Conceal):
+        if not self.concealed or isinstance(self.intent, Conceal):
             self.intent.signal()
-        if self.conceal:
-            self.conceal = False
+        if self.concealed:
+            self.concealed = False
 
 
 class Enemy(Character):
@@ -124,8 +124,8 @@ class CombatMove:
 
 class Attack(CombatMove):
 
-    def __init__(self, source, target, damage):
-        super().__init__(source, target)
+    def __init__(self, player, target, damage):
+        super().__init__(player, target)
         self.base_damage = damage
 
     def execute(self):
@@ -153,8 +153,8 @@ class Attack(CombatMove):
 
 class Block(CombatMove):
 
-    def __init__(self, source, target, block):
-        super().__init__(source, target)
+    def __init__(self, player, target, block):
+        super().__init__(player, target)
         self.block = block
     
     def execute(self):
@@ -173,9 +173,9 @@ class Block(CombatMove):
 
 class Conceal(CombatMove):
 
-    def __init__(self, source, target):
-        super().__init__(source, target)
-        source.conceal = True
+    def __init__(self, player, target):
+        super().__init__(player, target)
+        player.concealed = True
 
     def execute(self):
         pass
