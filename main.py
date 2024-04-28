@@ -92,14 +92,10 @@ class NPC(Character):
                 return Conceal(self)
             
     def base_damage(self):
-        mu = 16                                 # average attack
-        sigma = 8                               # 68% of attacks will be this distanced from the average
-        scalar = np.random.normal(mu, sigma, 1) # get a random number from the distribution
-        unpacked = scalar[0]                    # unpack the result from the array
-        return round(unpacked)                  # round the float to an integer
+        return 16
     
     def base_block(self):
-        return round(np.random.normal(10, 4, 1)[0])
+        return 10
 
 class Player(Character):
 
@@ -136,17 +132,26 @@ class Attack(CombatMove):
 
     def __init__(self, player, target):
         super().__init__(player, target)
-        self.base_damage = player.base_damage()
 
-    def execute(self):
+    def damage(self):
+        mu = self.player.base_damage()                                 # average attack
+        sigma = 2                               # 68% of attacks will be this distanced from the average
+        scalar = np.random.normal(mu, sigma, 1) # get a random number from the distribution
+        unpacked = scalar[0]                    # unpack the result from the array
+        damage = round(unpacked)                  # round the float to an integer
+        
         crit = random.randrange(0, 100)
         if crit == 0:
-            multiple = self.base_damage
-            self.base_damage = self.base_damage * self.base_damage
+            multiple = damage
+            damage = damage * damage
             print("{} got a rare critical hit for {} times the damage!".format(self.player.name, multiple))
         elif crit < 10:
-            self.base_damage = self.base_damage * 2
+            damage = damage
             print("{} got a critical hit for double damage!".format(self.player.name))
+        self.base_damage = damage
+
+    def execute(self):
+        self.damage()
         effective_damage = max(self.base_damage - self.target.block, 0)
         self.target.health = max(self.target.health - effective_damage, 0)
         if(self.base_damage < 8):
