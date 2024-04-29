@@ -38,8 +38,8 @@ class CombatController:
             self.enemy.signal_intent()
             self.player.signal_intent()
 
-            self.player.take_turn()
             self.enemy.take_turn()
+            self.player.take_turn()
 
             # combat is over, reset
             self.player.block = 0
@@ -70,12 +70,11 @@ class Character:
     
     def signal_intent(self):
         self.intent = self.get_intent()
-        if not self.concealed or isinstance(self.intent, Conceal):
-            self.intent.signal()
         if self.concealed:
             self.concealed = False
-
-
+        else:
+            self.intent.signal()
+            
 class NPC(Character):
     def __init__(self, combat_controller, health, name):
         super().__init__(combat_controller, health, name)
@@ -192,13 +191,13 @@ class Conceal(CombatMove):
 
     def __init__(self, player):
         super().__init__(player)
-        player.concealed = True
 
     def execute(self):
-        pass
+        self.player.concealed = True
+        print("{} feinted with their right hand".format(self.player.name))
 
     def signal(self):
-        print("{} feinted with their right hand".format(self.player.name))
+        print("{} raised their sword".format(self.player.name))
 
 
 def print_inventory():
