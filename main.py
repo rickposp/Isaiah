@@ -40,10 +40,6 @@ class CombatController:
 
             self.enemy.take_turn()
             self.player.take_turn()
-
-            # combat is over, reset
-            self.player.block = 0
-            self.enemy.block = 0
         if self.enemy.alive():
             print("you lose")
         else:
@@ -132,15 +128,8 @@ class Attack(CombatMove):
     def __init__(self, player, target):
         super().__init__(player, target)
 
-    def randomize(self, damage):
-        mu = damage                             # average attack
-        sigma = 2                               # 68% of attacks will be this distance from the average
-        scalar = np.random.normal(mu, sigma, 1) # get a random number from the distribution
-        unpacked = scalar[0]                    # unpack the result from the array
-        return round(unpacked)                  # round the float to an integer
-
     def damage(self):
-        damage = self.randomize(self.player.base_damage())
+        damage = randomize(self.player.base_damage())
         crit = random.randrange(0, 100)
         if crit == 0:
             multiple = damage
@@ -171,21 +160,21 @@ class Block(CombatMove):
 
     def __init__(self, player):
         super().__init__(player)
-        self.block = player.base_block()
+        self.player.block = randomize(player.base_block())
     
     def execute(self):
-        if(self.block < 8):
-            print("{} did a wimpy block for {} protection".format(self.player.name, self.block))
-        elif(self.block < 16):
-            print("{} did an ok block for {} protection".format(self.player.name, self.block))
-        elif(self.block < 32):
-            print("{} did a strong block for {} protection!".format(self.player.name, self.block))
+        if(self.player.block < 8):
+            print("{} did a wimpy block for {} protection".format(self.player.name, self.player.block))
+        elif(self.player.block < 16):
+            print("{} did an ok block for {} protection".format(self.player.name, self.player.block))
+        elif(self.player.block < 32):
+            print("{} did a strong block for {} protection!".format(self.player.name, self.player.block))
         else:
-            print("{} did a very strong block for {} protection!!".format(self.player.name, self.block))
+            print("{} did a very strong block for {} protection!!".format(self.player.name, self.player.block))
+        self.player.block = 0
 
     def signal(self):
-        self.player.block = self.block
-        print("{} held up their shield giving them {} block!".format(self.player.name, self.block))
+        print("{} held up their shield giving them {} block!".format(self.player.name, self.player.block))
 
 class Conceal(CombatMove):
 
@@ -199,7 +188,13 @@ class Conceal(CombatMove):
     def signal(self):
         print("{} raised their sword".format(self.player.name))
 
-
+def randomize(damage):
+    mu = damage                             # average attack
+    sigma = 2                               # 68% of attacks will be this distance from the average
+    scalar = np.random.normal(mu, sigma, 1) # get a random number from the distribution
+    unpacked = scalar[0]                    # unpack the result from the array
+    return round(unpacked)                  # round the float to an integer
+    
 def print_inventory():
     inventory = game_state["inventory"]
     for item in inventory:
