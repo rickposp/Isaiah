@@ -29,22 +29,61 @@ class CombatController:
     def __init__(self):
         self.player = Player(self)
         self.enemy = NPC(self, 50, "Bad Billybob")
+        
+        self.players = [
+            self.enemy,
+            self.player
+        ]
 
     def enter_combat_loop(self):
         print("You encounter an enemy!")
-        while(self.enemy.alive() and self.player.alive()):
-            print("{}'s health: {}  {}'s health: {}".format(self.player.name, self.player.health, self.enemy.name, self.enemy.health))
+        winner = None
+        while winner == None:
 
-            self.enemy.signal_intent()
-            self.player.signal_intent()
+            # TODO: ideally this would always be shown at the bottom of the screen
+            for player in self.players:
+                print("{}'s health: {}".format(player.name, player.health))
 
-            self.enemy.take_turn()
-            self.player.take_turn()
-        if self.enemy.alive():
-            print("you lose")
+            round = Round()
+            moves = round.get_moves(self.players)
+            round.play(moves)
+            winner = self.evaluate_win()
+        print("{} wins!".format(winner.name))
+
+    def evaluate_win(self):
+        in_game = []
+        for player in self.players:
+            if player.alive():
+                in_game.append(player)
+
+        if len(in_game) == 1:
+            return in_game[0]
         else:
-            print("you win!")
+            return None
 
+class Round:
+
+    def get_moves(self, players):
+        moves = []
+        for player in players:
+            player.signal_intent()
+            moves.append(player.intent)
+        return moves
+
+    def play(self, moves):
+        blocking_moves = []
+        attack_moves = []
+        for move in moves:
+            if move.is_blocking():
+                blocking_moves.append(move)
+            else:
+                attack_moves.append(move)
+
+        for block in blocking_moves:
+            block.execute()
+
+        for attack in attack_moves:
+            attack.execute()
 
 class Character:
 
@@ -54,9 +93,7 @@ class Character:
         self.name = name
         self.block = 0
         self.concealed = False
-
-    def take_turn(self):
-        self.intent.execute()
+        self.intent = None
 
     def alive(self):
         return self.health > 0
@@ -123,6 +160,9 @@ class CombatMove:
         self.player = player
         self.target = target
 
+    def is_blocking(self):
+        False
+
 class Attack(CombatMove):
 
     def __init__(self, player, target):
@@ -174,7 +214,10 @@ class Block(CombatMove):
         self.player.block = 0
 
     def signal(self):
-        print("{} held up their shield giving them {} block!".format(self.player.name, self.player.block))
+        print("{} held up their shield".format(self.player.name))
+
+    def is_blocking(self):
+        return True
 
 class Conceal(CombatMove):
 
