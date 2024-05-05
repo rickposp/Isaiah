@@ -36,19 +36,23 @@ class CombatController:
         ]
 
     def enter_combat_loop(self):
-        print("You encounter an enemy!")
+        tb.add_line("\n\nYou encounter an enemy!")
         winner = None
         while winner == None:
 
             # TODO: ideally this would always be shown at the bottom of the screen
+            tb.add_line('\n')
             for player in self.players:
-                print("{}'s health: {}".format(player.name, player.health))
+                tb.add_line("{}'s health: {}".format(player.name, player.health))
+            tb.add_line()
 
             round = Round()
             moves = round.get_moves(self.players)
             round.play(moves)
             winner = self.evaluate_win()
-        print("{} wins!".format(winner.name))
+            tb.read_out()
+        tb.add_line("{} wins!".format(winner.name))
+        tb.read_out()
 
     def evaluate_win(self):
         in_game = []
@@ -84,6 +88,27 @@ class Round:
 
         for attack in attack_moves:
             attack.execute()
+
+class TerminalBuffer:
+
+    def __init__(self):
+        self.lines = []
+        self.index = 0
+
+    def add_line(self, line = None):
+        if line:
+            self.lines.append(line)
+        else:
+            self.lines.append("")
+
+    def get_input(self, prompt):
+        self.read_out()
+        return input(prompt)
+
+    def read_out(self):
+        while self.index < len(self.lines):
+            print(self.lines[self.index])
+            self.index += 1
 
 class Character:
 
@@ -138,7 +163,7 @@ class Player(Character):
     def get_intent(self):
         running = True
         while(running):
-            user_input = input("A: attack  B: block  C: conceal\n")
+            user_input = tb.get_input("A: attack  B: block  C: conceal\n")
             clean_user_input = user_input.strip().lower()
             match(clean_user_input):
                 case "a":
@@ -193,22 +218,22 @@ class Attack(CombatMove):
 
     def describe_signal(self):
             if self.rare_crit:
-                print("{} got a rare critical hit".format(self.player.name))
+                tb.add_line("{} got a rare critical hit".format(self.player.name))
 
             if self.crit:
-                print("{} got a critical hit for double damage!".format(self.player.name))
+                tb.add_line("{} got a critical hit for double damage!".format(self.player.name))
                 
-            print("{} raised their sword".format(self.player.name))
+            tb.add_line("{} raised their sword".format(self.player.name))
 
     def describe_move(self):
         if(self.base_damage < 8):
-            print("{} did a wimpy attack and did {} damage".format(self.player.name, self.effective_damage))
+            tb.add_line("{} did a wimpy attack and did {} damage".format(self.player.name, self.effective_damage))
         elif(self.base_damage < 16):
-            print("{} did an ok attack and did {} damage".format(self.player.name, self.effective_damage))
+            tb.add_line("{} did an ok attack and did {} damage".format(self.player.name, self.effective_damage))
         elif(self.base_damage < 32):
-            print("{} did a strong attack and did {} damage!".format(self.player.name, self.effective_damage))
+            tb.add_line("{} did a strong attack and did {} damage!".format(self.player.name, self.effective_damage))
         else:
-            print("{} did a very strong attack and did {} damage!!".format(self.player.name, self.effective_damage))
+            tb.add_line("{} did a very strong attack and did {} damage!!".format(self.player.name, self.effective_damage))
 
 class Block(CombatMove):
 
@@ -227,17 +252,17 @@ class Block(CombatMove):
         return True
     
     def describe_signal(self):
-        print("{} held up their shield".format(self.player.name))
+        tb.add_line("{} held up their shield".format(self.player.name))
 
     def describe_move(self):
         if(self.player.block < 8):
-            print("{} did a wimpy block for {} protection".format(self.player.name, self.player.block))
+            tb.add_line("{} did a wimpy block for {} protection".format(self.player.name, self.player.block))
         elif(self.player.block < 16):
-            print("{} did an ok block for {} protection".format(self.player.name, self.player.block))
+            tb.add_line("{} did an ok block for {} protection".format(self.player.name, self.player.block))
         elif(self.player.block < 32):
-            print("{} did a strong block for {} protection!".format(self.player.name, self.player.block))
+            tb.add_line("{} did a strong block for {} protection!".format(self.player.name, self.player.block))
         else:
-            print("{} did a very strong block for {} protection!!".format(self.player.name, self.player.block))
+            tb.add_line("{} did a very strong block for {} protection!!".format(self.player.name, self.player.block))
 
 class Conceal(CombatMove):
 
@@ -252,10 +277,10 @@ class Conceal(CombatMove):
         self.describe_signal()
 
     def describe_signal(self):
-        print("{} raised their sword".format(self.player.name))
+        tb.add_line("{} raised their sword".format(self.player.name))
 
     def describe_move(self):
-        print("{} feinted with their right hand".format(self.player.name))
+        tb.add_line("{} feinted with their right hand".format(self.player.name))
 
 def randomize(damage):
     mu = damage                             # average attack
@@ -293,6 +318,8 @@ def handle_get_name(prompt):
 def handle_combat(prompt):
     CombatController().enter_combat_loop()
     
+tb = TerminalBuffer()
+
 game_state = {
     "name" : "",
     "inventory" : []
@@ -306,7 +333,7 @@ monster = {
 prompts = [
     {
         "action" : "get_name",
-        "text" : "Hello, what is your name?\n"
+        "text" : "Hello, what is your name?"
     },
     {
         "action": "combat"
@@ -326,7 +353,7 @@ prompts = [
 
 code = 0
 while True:    
-    user_input = input("press enter to continue")
+    user_input = input("\npress enter to continue")
     if user_input == '':
         prompt = prompts.pop(0)
 
