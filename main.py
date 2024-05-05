@@ -167,34 +167,48 @@ class Attack(CombatMove):
 
     def __init__(self, player, target):
         super().__init__(player, target)
+        self.effective_damage = 0
+        self.crit = False
+        self.rare_crit = False
 
     def damage(self):
         damage = randomize(self.player.base_damage())
         crit = random.randrange(0, 100)
         if crit == 0:
-            multiple = damage
             damage = damage * damage
-            print("{} got a rare critical hit for {} times the damage!".format(self.player.name, multiple))
+            self.crit = True
         elif crit < 10:
             damage = damage
-            print("{} got a critical hit for double damage!".format(self.player.name))
+            self.crit = False
         self.base_damage = damage
 
     def execute(self):
         self.damage()
-        effective_damage = max(self.base_damage - self.target.block, 0)
-        self.target.health = max(self.target.health - effective_damage, 0)
-        if(self.base_damage < 8):
-            print("{} did a wimpy attack and did {} damage".format(self.player.name, effective_damage))
-        elif(self.base_damage < 16):
-            print("{} did an ok attack and did {} damage".format(self.player.name, effective_damage))
-        elif(self.base_damage < 32):
-            print("{} did a strong attack and did {} damage!".format(self.player.name, effective_damage))
-        else:
-            print("{} did a very strong attack and did {} damage!!".format(self.player.name, effective_damage))
+        self.effective_damage = max(self.base_damage - self.target.block, 0)
+        self.target.health = max(self.target.health - self.effective_damage, 0)
+        self.describe_move()
 
     def signal(self):
-        print("{} raised their sword".format(self.player.name))
+        self.describe_signal()
+
+    def describe_signal(self):
+            if self.rare_crit:
+                print("{} got a rare critical hit".format(self.player.name))
+
+            if self.crit:
+                print("{} got a critical hit for double damage!".format(self.player.name))
+                
+            print("{} raised their sword".format(self.player.name))
+
+    def describe_move(self):
+        if(self.base_damage < 8):
+            print("{} did a wimpy attack and did {} damage".format(self.player.name, self.effective_damage))
+        elif(self.base_damage < 16):
+            print("{} did an ok attack and did {} damage".format(self.player.name, self.effective_damage))
+        elif(self.base_damage < 32):
+            print("{} did a strong attack and did {} damage!".format(self.player.name, self.effective_damage))
+        else:
+            print("{} did a very strong attack and did {} damage!!".format(self.player.name, self.effective_damage))
 
 class Block(CombatMove):
 
@@ -203,6 +217,19 @@ class Block(CombatMove):
         self.player.block = randomize(player.base_block())
     
     def execute(self):
+        self.describe_move()
+        self.player.block = 0
+
+    def signal(self):
+        self.describe_signal()
+
+    def is_blocking(self):
+        return True
+    
+    def describe_signal(self):
+        print("{} held up their shield".format(self.player.name))
+
+    def describe_move(self):
         if(self.player.block < 8):
             print("{} did a wimpy block for {} protection".format(self.player.name, self.player.block))
         elif(self.player.block < 16):
@@ -211,13 +238,6 @@ class Block(CombatMove):
             print("{} did a strong block for {} protection!".format(self.player.name, self.player.block))
         else:
             print("{} did a very strong block for {} protection!!".format(self.player.name, self.player.block))
-        self.player.block = 0
-
-    def signal(self):
-        print("{} held up their shield".format(self.player.name))
-
-    def is_blocking(self):
-        return True
 
 class Conceal(CombatMove):
 
@@ -226,10 +246,16 @@ class Conceal(CombatMove):
 
     def execute(self):
         self.player.concealed = True
-        print("{} feinted with their right hand".format(self.player.name))
+        self.describe_move()
 
     def signal(self):
+        self.describe_signal()
+
+    def describe_signal(self):
         print("{} raised their sword".format(self.player.name))
+
+    def describe_move(self):
+        print("{} feinted with their right hand".format(self.player.name))
 
 def randomize(damage):
     mu = damage                             # average attack
