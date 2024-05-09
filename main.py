@@ -223,7 +223,7 @@ class Attack(CombatMove):
             if self.crit:
                 tb.add_line("{} got a critical hit for double damage!".format(self.player.name))
                 
-            tb.add_line("{} raised their sword".format(self.player.name))
+            tb.add_line("{} powered up their blade for an atack".format(self.player.name))
 
     def describe_move(self):
         if(self.base_damage < 8):
@@ -252,7 +252,7 @@ class Block(CombatMove):
         return True
     
     def describe_signal(self):
-        tb.add_line("{} held up their shield".format(self.player.name))
+        tb.add_line("{} lifted their shining sheild and cryed out".format(self.player.name))
 
     def describe_move(self):
         if(self.player.block < 8):
