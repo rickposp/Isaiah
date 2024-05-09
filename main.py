@@ -227,13 +227,13 @@ class Attack(CombatMove):
 
     def describe_move(self):
         if(self.base_damage < 8):
-            tb.add_line("{} did a wimpy attack and did {} damage".format(self.player.name, self.effective_damage))
+            tb.add_line("{} did a wimpy attack".format(self.player.name))
         elif(self.base_damage < 16):
-            tb.add_line("{} did an ok attack and did {} damage".format(self.player.name, self.effective_damage))
+            tb.add_line("{} did an ok attack".format(self.player.name))
         elif(self.base_damage < 32):
-            tb.add_line("{} did a strong attack and did {} damage!".format(self.player.name, self.effective_damage))
+            tb.add_line("{} did a strong attack".format(self.player.name))
         else:
-            tb.add_line("{} did a very strong attack and did {} damage!!".format(self.player.name, self.effective_damage))
+            tb.add_line("{} did a very strong attack".format(self.player.name))
 
 class Block(CombatMove):
 
